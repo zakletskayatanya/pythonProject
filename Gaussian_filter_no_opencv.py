@@ -1,22 +1,38 @@
-
 import numpy as np
 import math
-class GaussianFilter():
-    def gauss_kernel(sigma):
-        radius = round(3 * sigma)
-        k = radius * 2 + 1
-        kernel = np.zeros((k, k))
+
+
+class GaussianFilter:
+    sigma_ = 2
+
+    # kernelSize_ = None
+    # kernel = []
+
+    def __init__(self, image, kernel_size):
+        # assert self.kernelSize_ % 2 != 1, "Kernel size must be uneven number"
+
+        self.kernelSize_ = kernel_size
+        self.image = image
+        radius = kernel_size // 2
+        kernel_not_norm = np.zeros((kernel_size, kernel_size), dtype=float)
         y = radius
-        for i in range(k):
+        for i in range(kernel_size):
             x = -radius
-            for j in range(k):
-                kernel[i, j] = (1 / (2 * math.pi * (sigma * sigma))) * math.exp(
-                    ((-(x * x) - (y * y))) / (2 * (sigma * sigma)))
+            for j in range(kernel_size):
+                kernel_not_norm[i, j] = (1 / (2 * math.pi * (self.sigma_ ** 2))) * math.exp(
+                    (-(x ** 2) - (y ** 2)) / (2 * (self.sigma_ ** 2)))
                 x += 1
             y -= 1
-        return kernel / np.sum(kernel), k, radius
+        kernel_norm = kernel_not_norm / np.sum(kernel_not_norm)
+        self.kernel = kernel_norm
 
-    def gauss_blur(img, radius):
-        blur = np.sum([np.multiply(img[(i - radius):(i + radius + 1), (j - radius):(j + radius + 1)], kernel) for i in
-                       range(radius, img.shape[0] - radius) for j in range(radius, img.shape[1] - radius)])
+    def gauss_blur(self):
+        radius = self.kernelSize_ // 2
+        prom = np.zeros(self.image.shape, dtype=float)
+        for i in range(radius, self.image.shape[0] - radius):
+            for j in range(radius, self.image.shape[1] - radius):
+                prom[i, j] = np.sum(
+                    np.multiply(self.image[(i - radius):(i + radius + 1), (j - radius):(j + radius + 1)],
+                                self.kernel))
+        blur = prom
         return blur

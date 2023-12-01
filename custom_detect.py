@@ -2,44 +2,28 @@ import cv2  # импорт модуля cv2
 import skimage
 import math
 import numpy as np
+import Gaussian_filter_no_opencv as gauss
 from scipy.ndimage import gaussian_filter
 
 cap = cv2.VideoCapture("http://192.168.217.103/mjpg/video.mjpg")  # видео поток с веб камеры
 
-#cap.set(3, 1280)  # установка размера окна
-#cap.set(4, 700)
+# cap.set(3, 200)  # установка размера окна
+# cap.set(4, 300)
 
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
 
-def gauss_kernel(sigma):
-    radius = round(3 * sigma)
-    k = radius * 2 + 1
-    kernel = np.zeros((k, k))
-    y = radius
-    for i in range(k):
-        x = -radius
-        for j in range(k):
-            kernel[i, j] = (1 / (2 * math.pi * (sigma * sigma))) * math.exp(((-(x * x) - (y * y))) / (2 * (sigma * sigma)))
-            x += 1
-        y -= 1
-    return kernel / np.sum(kernel), k, radius
-def gauss_blur(img, radius):
-    blur = np.sum([np.multiply(img[(i-radius):(i+radius+1), (j-radius):(j+radius+1)], kernel) for i in range(radius, img.shape[0] - radius) for j in range(radius, img.shape[1] - radius)])
-    return blur
-
 while cap.isOpened():  # метод isOpened() выводит статус видеопотока
 
-    img_f1 = frame1.astype(np.float32) #разница 2х кадров
+# https://webtort.ru/%D0%BA%D0%B0%D0%BA-%D0%BD%D0%B0%D0%B9%D1%82%D0%B8-%D0%BE%D1%82%D0%BB%D0%B8%D1%87%D0%B8%D1%8F-%D0%BD%D0%B0-%D0%BA%D0%B0%D1%80%D1%82%D0%B8%D0%BD%D0%BA%D0%B0%D1%85-%D1%81-%D0%BF%D0%BE%D0%BC%D0%BE%D1%89/?ysclid=lpmzcgk0un225441379
+    img_f1 = frame1.astype(np.float32)  # разница 2х кадров
     img_f2 = frame2.astype(np.float32)
     diff_custom = abs(img_f1 - img_f2)
-    diff_custom = diff_custom.astype(np.ubyte)
-    gray_custom = skimage.color.rgb2gray(diff_custom)#черно белый кадр
+    # diff_custom = diff_custom.astype(np.ubyte)
+    gray_custom = skimage.color.rgb2gray(diff_custom)  # черно белый кадр
 
-    gray_custom = gray_custom.astype(np.float32)
-    [kernel, k, radius] = gauss_kernel(1)
-    blur_custom = gauss_blur(gray_custom, radius)
-    thresh_custom = np.clip(blur_custom, 10, 255)
+    # blur_custom = gauss.GaussianFilter(gray_custom, 7).gauss_blur()
+    # thresh_custom = np.clip(blur_custom, 10, 255)
     # threshold = 10
     # thresh_custom = 1.0 * (blur_custom > threshold)
     # thresh_custom = thresh_custom.astype(np.ubyte)
@@ -52,7 +36,7 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
     # lab = cv2.merge((l2,a,b))
     # diff2 = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
 
-    cv2.imshow("2", thresh_custom)
+    cv2.imshow("2", diff_custom)
 
     # сontours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # нахождение массива контурных точек
     # #cv2.drawContours(frame1, сontours, -1, (0, 255, 0), 2) #также можно было просто нарисовать контур объекта
