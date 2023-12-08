@@ -3,8 +3,8 @@ import skimage.color
 import math
 import numpy as np
 
-cap = cv2.VideoCapture("http://192.168.217.103/mjpg/video.mjpg")  # видео поток с веб камеры
-
+# cap = cv2.VideoCapture("http://192.168.217.103/mjpg/video.mjpg")  # видео поток с веб камеры
+cap = cv2.VideoCapture("IMG_8546.MP4")
 #cap.set(3, 1280)  # установка размера окна
 #cap.set(4, 700)
 
@@ -26,8 +26,6 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
     # l2 = clane.apply(l)
     # lab = cv2.merge((l2,a,b))
     # diff2 = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
-
-    cv2.imshow("1", diff)
 
     dilated = cv2.dilate(thresh, None, iterations=3)  # данный метод противоположен методу erosion(), т.е. эрозии объекта, и расширяет выделенную на предыдущем этапе область
 

@@ -46,6 +46,7 @@ class GaussianFilter:
         return blur
 
     def gauss_blur(self, img):
-        image = self.gauss_vertical(img)
-        image = self.gauss_gorizontal(image)
-        return image.astype(np.ubyte)
+        # image = self.gauss_vertical(img)
+        # image = self.gauss_gorizontal(image)
+        image = spicy.ndimage.convolve(img, self.kernel[np.newaxis, :], mode='reflect')
+        return image
