@@ -3,6 +3,7 @@ import skimage
 import numpy as np
 import Gaussian_filter_no_opencv as gauss
 from scipy.ndimage import gaussian_filter
+import map
 
 # cap = cv2.VideoCapture("http://192.168.217.103/mjpg/video.mjpg")  # видео поток с веб камеры
 cap = cv2.VideoCapture("IMG_8546.MP4")  # видео поток с веб камеры
@@ -33,24 +34,44 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
     # contours = skimage.measure.find_contours(thresh_custom)
     contours1 = thresh_custom[:-1, :]
     contours2 = thresh_custom[1:, :]
-
     contours = 255 * (np.abs(contours1 - contours2) > 0)
-    contours = contours.astype(np.ubyte)
 
-    # сontours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # нахождение массива контурных точек
-    # #cv2.drawContours(frame1, сontours, -1, (0, 255, 0), 2) #также можно было просто нарисовать контур объекта
-    #
-    # for contour in сontours:
-    #      (x, y, w, h) = cv2.boundingRect(contour)  # преобразование массива из предыдущего этапа в кортеж из четырех координат
-    #
-    #      # метод contourArea() по заданным contour точкам, здесь кортежу, вычисляет площадь зафиксированного объекта в каждый момент времени, это можно проверить
-    #      print(cv2.contourArea(contour))
-    #
-    #      if cv2.contourArea(contour) < 500:  # условие при котором площадь выделенного объекта меньше 700 px
-    #          continue
-    #      cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)  # получение прямоугольника из точек кортежа
+    a, b = np.where(contours == 255)
+    three_a = []
+    three_b = []
+    n = 7
+    splist_a = np.array_split(a, n)
+    splist_b = np.array_split(b, n)
+    if len(splist_b[n-1]) != 0 or len(splist_a[n-1]) != 0:
+        # bmin = min(b)
+        # amin = min(a)
+        # bmax = max(b)
+        # amax = max(a)
+        bmin = []
+        amin = []
+        bmax = []
+        amax = []
 
-    cv2.imshow("frame1", contours)
+        # print(splist_b)
+
+        for i in range(0, n):
+            three_b.append([1] * splist_b[i])
+            three_a.append([1] * splist_a[i])
+
+        for j in range(0, len(three_b)):
+            bmin.append(min(three_b[j]))
+            bmax.append(max(three_b[j]))
+            amin.append(min(three_a[j]))
+            amax.append(max(three_a[j]))
+
+            rr, cc = skimage.draw.rectangle_perimeter((amin[j], bmin[j]), end=(amax[j], bmax[j]), shape=frame1.shape)
+            print(len(rr)*len(cc))
+            if len(rr)*len(cc) < 500000:
+                frame1[rr, cc] = (0, 255, 0)
+
+    # contours = contours.astype(np.ubyte)
+
+    cv2.imshow("frame1", frame1)
     print("1")
     frame1 = frame2  #
     ret, frame2 = cap.read()  #
