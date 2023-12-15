@@ -27,9 +27,9 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
     blur_custom = gauss.GaussianFilter(7).gauss_blur(gray_custom)
     # blur_custom = blur_custom.astype(np.ubyte)
     # thresh_custom = np.clip(blur_custom, 10, 255)
-    threshold = 20 # переход к бинарному изображению
+    threshold = 30 # переход к бинарному изображению
     thresh_custom = 255 * (blur_custom > threshold)
-    # thresh_custom = thresh_custom.astype(np.ubyte)
+    thresh_custom = thresh_custom.astype(np.ubyte)
 
     # contours = skimage.measure.find_contours(thresh_custom)
     contours1 = thresh_custom[:-1, :]
@@ -37,39 +37,61 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
     contours = 255 * (np.abs(contours1 - contours2) > 0)
 
     a, b = np.where(contours == 255)
+    # print(b)
+    d_a = np.diff(a)
+    dd = np.where(d_a > 1)
+    print(a)
+    print(d_a)
+    print(dd)
     three_a = []
     three_b = []
-    n = 7
+    j = 0
+    for i in range(len(dd[0])):
+        three_a.append([1] * a[j:dd[0][i]+1])
+        j = dd[0][i]+1
+    three_a.append([1] * a[j:])
+    print(three_a)
+    # if len(a) != 0 or len(b) != 0:
+    #     bmin = min(b)
+    #     amin = min(a)
+    #     bmax = max(b)
+    #     amax = max(a)
+    #     rr, cc = skimage.draw.rectangle((amin, bmin), end=(amax, bmax), shape=frame1.shape)
+    #     # frame1[rr, cc] = (0, 255, 0)
+    #     n = 7
+    #
+    #     for j in range(0, len(rr)):
+    #         x = np.where(rr[j] == 255)
+    #         y = np.where(cc[j] == 255)
+    #         if len(x) != 0 and len(y) != 0:
+    #             print(x)
+    #             rr1, cc1 = skimage.draw.rectangle_perimeter((min(x), min(y)), end=(max(x), max(y)), shape=frame1.shape)
+    #             frame1[rr1, cc1] = (0, 255, 0)
+    n = 1
     splist_a = np.array_split(a, n)
     splist_b = np.array_split(b, n)
+
     if len(splist_b[n-1]) != 0 or len(splist_a[n-1]) != 0:
-        # bmin = min(b)
-        # amin = min(a)
-        # bmax = max(b)
-        # amax = max(a)
         bmin = []
         amin = []
         bmax = []
         amax = []
 
-        # print(splist_b)
+        for j in range(0, len(splist_b)):
+            if len(splist_b[j]) > 10 and len(splist_a[j]) > 10:
+                print(splist_b[j])
+                bmin.append(min(splist_b[j]))
+                bmax.append(max(splist_b[j]))
+            # if len(splist_a[j] > 10):
+                amin.append(min(splist_a[j]))
+                amax.append(max(splist_a[j]))
 
-        for i in range(0, n):
-            three_b.append([1] * splist_b[i])
-            three_a.append([1] * splist_a[i])
-
-        for j in range(0, len(three_b)):
-            bmin.append(min(three_b[j]))
-            bmax.append(max(three_b[j]))
-            amin.append(min(three_a[j]))
-            amax.append(max(three_a[j]))
-
-            rr, cc = skimage.draw.rectangle_perimeter((amin[j], bmin[j]), end=(amax[j], bmax[j]), shape=frame1.shape)
-            print(len(rr)*len(cc))
-            if len(rr)*len(cc) < 500000:
+                rr, cc = skimage.draw.rectangle_perimeter((amin[j], bmin[j]), end=(amax[j], bmax[j]), shape=frame1.shape)
                 frame1[rr, cc] = (0, 255, 0)
+                if len(rr)*len(cc) < 1000:
+                    pass
 
-    # contours = contours.astype(np.ubyte)
+    contours = contours.astype(np.ubyte)
 
     cv2.imshow("frame1", frame1)
     print("1")
