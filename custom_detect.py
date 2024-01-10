@@ -40,60 +40,42 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
 
     a, b = np.where(contours == 255)
     center = np.zeros((10, 2))
-    if len(b) != 0 or len(a) != 0:
-        for i in range(len(center)):
-            rnd_b = random.randint(min(b), max(b))
-            if rnd_b in b:
-                center[i, 1] = rnd_b
-            rnd_a = random.randint(min(a), max(a))
-            if rnd_a in a:
-                center[i, 0] = rnd_a
+    R = np.zeros(len(a)-1)
+    for i in range(len(a)-1):
+        R[i] = math.sqrt((a[i] - a[i-1])**2+(b[i] - b[i-1])**2)
 
-        klast_b = np.zeros(len(b))
-        klast_a = np.zeros(len(a))
-        for j in range(len(b)):
-            pmin = 10000
-            for i in range(len(center)):
-                p = math.sqrt((b[j] - center[i, 1]) ** 2+(a[j] - center[i, 0]) ** 2)
-                if p < pmin:
-                    pmin = p
-                    klast_b[j] = i
-                    klast_a[j] = i
-        R = np.zeros(len(center)-1)
-        for i in range(len(center)-1):
-            R[i] = math.sqrt((center[i,0] - center[i-1,0])**2 + (center[i,1] - center[i-1,1])**2)
-        print(R)
-        Rmin = np.where(R == min(R))
+    Rmin = np.where(R == min(R))
+    print(Rmin)
 
 
-    if len(b) != 0 or len(a) != 0:
-        bmin = []
-        amin = []
-        bmax = []
-        amax = []
-
-        for i in range(len(center)):
-            klaster_b = np.array(np.where(klast_b == i))
-            klaster_a = np.array(np.where(klast_a == i))
-
-            # print(klaster_b.shape, klaster_a.shape)
-            if klaster_b.shape[1] > 0:
-                x = np.zeros(klaster_b.shape[1])
-                y = np.zeros(klaster_a.shape[1])
-                for j in range(klaster_a.shape[1]):
-                    x[j] = b[klaster_b[:, j]]
-                    y[j] = a[klaster_a[:, j]]
-                # print(x,y)
-                bmin.append(min(x))
-                bmax.append(max(x))
-                amin.append(min(y))
-                amax.append(max(y))
-                # print(bmin, bmax,amin,amax)
-                for k in range(len(bmin)):
-
-                    rr, cc = skimage.draw.rectangle_perimeter((amin[k], bmin[k]), end=(amax[k], bmax[k]),
-                                                          shape=frame1.shape)
-                    frame1[rr, cc] = (0, 255, 0)
+    # if len(b) != 0 or len(a) != 0:
+    #     bmin = []
+    #     amin = []
+    #     bmax = []
+    #     amax = []
+    #
+    #     for i in range(len(center)):
+    #         klaster_b = np.array(np.where(klast_b == i))
+    #         klaster_a = np.array(np.where(klast_a == i))
+    #
+    #         # print(klaster_b.shape, klaster_a.shape)
+    #         if klaster_b.shape[1] > 0:
+    #             x = np.zeros(klaster_b.shape[1])
+    #             y = np.zeros(klaster_a.shape[1])
+    #             for j in range(klaster_a.shape[1]):
+    #                 x[j] = b[klaster_b[:, j]]
+    #                 y[j] = a[klaster_a[:, j]]
+    #             # print(x,y)
+    #             bmin.append(min(x))
+    #             bmax.append(max(x))
+    #             amin.append(min(y))
+    #             amax.append(max(y))
+    #             # print(bmin, bmax,amin,amax)
+    #             for k in range(len(bmin)):
+    #
+    #                 rr, cc = skimage.draw.rectangle_perimeter((amin[k], bmin[k]), end=(amax[k], bmax[k]),
+    #                                                       shape=frame1.shape)
+    #                 frame1[rr, cc] = (0, 255, 0)
 
     # d_a = np.diff(a)
     # dd = np.where(d_a > 1)
