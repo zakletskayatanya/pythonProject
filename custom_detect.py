@@ -38,14 +38,67 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
     contours2 = thresh_custom[1:, :]
     contours = 255 * (np.abs(contours1 - contours2) > 0)
 
-    a, b = np.where(contours == 255)
+    x ,y = np.where(contours == 255)
     center = np.zeros((10, 2))
-    R = np.zeros(len(a)-1)
-    for i in range(len(a)-1):
-        R[i] = math.sqrt((a[i] - a[i-1])**2+(b[i] - b[i-1])**2)
+    perem_a = []
+    perem_b = []
+    a, b = x, y
+    R = np.zeros((len(a)-1, len(b)-1))
+    R += 10000
 
-    Rmin = np.where(R == min(R))
-    print(Rmin)
+    Rmin = -100
+    # print(x)
+    # print(a)
+    klasters_a = []
+    klasters_b = []
+    count = 0
+    while Rmin < 1:
+
+
+        new_R =[]
+
+        if count == 0:
+            count += 1
+            for i in range(R.shape[0]-1):
+                for j in range(i+1, R.shape[1]):
+                    R[i, j] = math.sqrt((a[i] - a[j+1])**2+(b[i] - b[j+1])**2)
+
+            Rmin = R.min()
+            # print(Rmin)
+            for i in range(R.shape[0]-1):
+                perem_a.append(a[i])
+                perem_b.append(b[i])
+                for j in range(i, R.shape[1]):
+                    if Rmin == R[i, j]:
+                        perem_a.append(a[j])
+                        perem_b.append(b[j])
+                        R[i, j] = 100000
+                klasters_a.append(perem_a)
+                klasters_b.append(perem_b)
+                new_R = sum(perem_a)/ len(perem_a)
+                new_R = sum(perem_b) / len(perem_b)
+                perem_a = []
+                perem_b = []
+
+
+        if count != 0:
+
+            print(sum(klasters_a))
+            print(klasters_b)
+            print(b)
+            print(len(sum(klasters_a)))
+            print(len(klasters_b))
+            range()
+
+
+        # new_a.append(a[-1])
+        # a = new_a
+        # new_b.append(b[-1])
+        # b = new_b
+        # print(a)
+        print(klasters_b)
+        # print(b)
+
 
 
     # if len(b) != 0 or len(a) != 0:
