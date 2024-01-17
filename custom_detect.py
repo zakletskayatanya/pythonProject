@@ -5,7 +5,8 @@ import skimage
 import numpy as np
 import Gaussian_filter_no_opencv as gauss
 from scipy.ndimage import gaussian_filter
-import map
+import sklearn
+import itertools
 
 # cap = cv2.VideoCapture("http://192.168.217.103/mjpg/video.mjpg")  # видео поток с веб камеры
 cap = cv2.VideoCapture("IMG_8546.MP4")  # видео поток с веб камеры
@@ -38,147 +39,92 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
     contours2 = thresh_custom[1:, :]
     contours = 255 * (np.abs(contours1 - contours2) > 0)
 
-    x ,y = np.where(contours == 255)
+    x, y = np.where(contours == 255)
     center = np.zeros((10, 2))
     perem_a = []
     perem_b = []
-    a, b = x, y
-    R = np.zeros((len(a)-1, len(b)-1))
-    R += 10000
+    if len(x) != 0 and len(y) != 0:
 
-    Rmin = -100
-    # print(x)
-    # print(a)
-    klasters_a = []
-    klasters_b = []
-    count = 0
-    while Rmin < 1:
+        a, b = x, y
+        R = np.zeros((len(a) - 1, len(b) - 1))
+        R += 1000000000000
 
+        Rmin = -100
+        klasters_a = []
+        klasters_b = []
+        count = 0
+        while Rmin < 70:
 
-        new_R =[]
+            if count == 0:
+                count += 1
+                for i in range(R.shape[0] - 1):
+                    for j in range(i + 1, R.shape[1]):
+                        R[i, j] = math.sqrt((a[i] - a[j]) ** 2 + (b[i] - b[j]) ** 2)
 
-        if count == 0:
-            count += 1
-            for i in range(R.shape[0]-1):
-                for j in range(i+1, R.shape[1]):
-                    R[i, j] = math.sqrt((a[i] - a[j+1])**2+(b[i] - b[j+1])**2)
+                Rmin = R.min()
+                for i in range(R.shape[0] - 1):
+                    perem_a.append(a[i])
+                    perem_b.append(b[i])
+                    for j in range(i+1, R.shape[1]):
+                        if Rmin == R[i, j]:
+                            perem_a.append(a[j])
+                            perem_b.append(b[j])
+                            R[i, j] = 1000000000000
+                    klasters_a.append(perem_a)
+                    klasters_b.append(perem_b)
+                    perem_a = []
+                    perem_b = []
 
-            Rmin = R.min()
-            # print(Rmin)
-            for i in range(R.shape[0]-1):
-                perem_a.append(a[i])
-                perem_b.append(b[i])
-                for j in range(i, R.shape[1]):
-                    if Rmin == R[i, j]:
-                        perem_a.append(a[j])
-                        perem_b.append(b[j])
-                        R[i, j] = 100000
-                klasters_a.append(perem_a)
-                klasters_b.append(perem_b)
-                new_R = sum(perem_a)/ len(perem_a)
-                new_R = sum(perem_b) / len(perem_b)
-                perem_a = []
-                perem_b = []
+            R = np.zeros((len(klasters_a), len(klasters_b)))
+            R += 1000000000000
+            new_klast_a = []
+            new_klast_b = []
 
+            if count != 0:
+                for i in range(len(klasters_a)):
+                    for j in range(i + 1, len(klasters_b)):
+                        R[i, j] = math.sqrt(
+                            (sum(klasters_a[i]) / len(klasters_a[i]) - sum(klasters_a[j]) / len(klasters_a[j])) ** 2 + (
+                                        sum(klasters_b[i]) / len(klasters_b[i]) - sum(klasters_b[j]) / len(
+                                    klasters_b[j])) ** 2)
 
-        if count != 0:
+                Rmin = R.min()
+                for i in range(len(klasters_a)):
+                    if klasters_b[i] != [-10] and klasters_a[i] != [-10]:
+                        perem_a.append(klasters_a[i])
+                        perem_b.append(klasters_b[i])
+                        for j in range(i+1, len(klasters_b)):
+                            if Rmin == R[i, j]:
+                                perem_a.append(klasters_a[j])
+                                perem_b.append(klasters_b[j])
+                                klasters_a[j] = [-10]
+                                klasters_b[j] = [-10]
+                                R[i, j] = 1000000000000
 
-            print(sum(klasters_a))
-            print(klasters_b)
-            print(b)
-            print(len(sum(klasters_a)))
-            print(len(klasters_b))
-            range()
+                        perem_b = sum(perem_b, [])
+                        perem_a = sum(perem_a, [])
+                        new_klast_a.append(perem_a)
+                        new_klast_b.append(perem_b)
+                        perem_a = []
+                        perem_b = []
+                klasters_b.clear()
+                klasters_a.clear()
+                klasters_b = new_klast_b
+                klasters_a = new_klast_a
 
-
-        # new_a.append(a[-1])
-        # a = new_a
-        # new_b.append(b[-1])
-        # b = new_b
-        # print(a)
         print(klasters_b)
-        # print(b)
+        print(Rmin)
+        print(len(klasters_b), len(klasters_a))
 
+        amin, amax, bmin, bmax = 0, 0, 0, 0
+        for i in range(len(klasters_a) - 1):
+            bmin = min(klasters_b[i])
+            bmax = max(klasters_b[i])
+            amin = min(klasters_a[i])
+            amax = max(klasters_a[i])
 
-
-    # if len(b) != 0 or len(a) != 0:
-    #     bmin = []
-    #     amin = []
-    #     bmax = []
-    #     amax = []
-    #
-    #     for i in range(len(center)):
-    #         klaster_b = np.array(np.where(klast_b == i))
-    #         klaster_a = np.array(np.where(klast_a == i))
-    #
-    #         # print(klaster_b.shape, klaster_a.shape)
-    #         if klaster_b.shape[1] > 0:
-    #             x = np.zeros(klaster_b.shape[1])
-    #             y = np.zeros(klaster_a.shape[1])
-    #             for j in range(klaster_a.shape[1]):
-    #                 x[j] = b[klaster_b[:, j]]
-    #                 y[j] = a[klaster_a[:, j]]
-    #             # print(x,y)
-    #             bmin.append(min(x))
-    #             bmax.append(max(x))
-    #             amin.append(min(y))
-    #             amax.append(max(y))
-    #             # print(bmin, bmax,amin,amax)
-    #             for k in range(len(bmin)):
-    #
-    #                 rr, cc = skimage.draw.rectangle_perimeter((amin[k], bmin[k]), end=(amax[k], bmax[k]),
-    #                                                       shape=frame1.shape)
-    #                 frame1[rr, cc] = (0, 255, 0)
-
-    # d_a = np.diff(a)
-    # dd = np.where(d_a > 1)
-    # three_a = []
-    # three_b = []
-    # j = 0
-    # for i in range(len(dd[0])):
-    #     three_a.append([1] * a[j:dd[0][i]+1])
-    #     j = dd[0][i]+1
-    # three_a.append([1] * a[j:])
-    # # print(three_a)
-    # # if len(a) != 0 or len(b) != 0:
-    # #     bmin = min(b)
-    # #     amin = min(a)
-    # #     bmax = max(b)
-    # #     amax = max(a)
-    # #     rr, cc = skimage.draw.rectangle((amin, bmin), end=(amax, bmax), shape=frame1.shape)
-    # #     # frame1[rr, cc] = (0, 255, 0)
-    # #     n = 7
-    # #
-    # #     for j in range(0, len(rr)):
-    # #         x = np.where(rr[j] == 255)
-    # #         y = np.where(cc[j] == 255)
-    # #         if len(x) != 0 and len(y) != 0:
-    # #             print(x)
-    # #             rr1, cc1 = skimage.draw.rectangle_perimeter((min(x), min(y)), end=(max(x), max(y)), shape=frame1.shape)
-    # #             frame1[rr1, cc1] = (0, 255, 0)
-    # n = 1
-    # splist_a = np.array_split(a, n)
-    # splist_b = np.array_split(b, n)
-    #
-    # if len(b) != 0 or len(a) != 0:
-    #     bmin = []
-    #     amin = []
-    #     bmax = []
-    #     amax = []
-    #
-    #     for j in range(0, len(splist_b)):
-    #         if len(splist_b[j]) > 10 and len(splist_a[j]) > 10:
-    #             # print(splist_b[j])
-    #             bmin.append(min(splist_b[j]))
-    #             bmax.append(max(splist_b[j]))
-    #         # if len(splist_a[j] > 10):
-    #             amin.append(min(splist_a[j]))
-    #             amax.append(max(splist_a[j]))
-    #
-    #             rr, cc = skimage.draw.rectangle_perimeter((amin[j], bmin[j]), end=(amax[j], bmax[j]), shape=frame1.shape)
-    #             frame1[rr, cc] = (0, 255, 0)
-    #             if len(rr)*len(cc) < 1000:
-    #                 pass
+            rr, cc = skimage.draw.rectangle_perimeter((amin, bmin), end=(amax, bmax), shape=frame1.shape)
+            frame1[rr, cc] = (0, 255, 0)
 
     contours = contours.astype(np.ubyte)
 
