@@ -104,6 +104,7 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
                 klasters_b.pop(rj[i])
                 klasters_a.pop(rj[i])
 
+
         print(klasters_b)
         print(klasters_a)
 
