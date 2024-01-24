@@ -46,70 +46,70 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
 
     perem_a = []
     perem_b = []
-    if len(x) != 0 and len(y) != 0:
+    if len(x) > 0 and len(y) > 0:
 
         a, b = x, y
-        R = np.zeros((len(a) - 1, len(b) - 1))
-        R += 1000000000000
+        # R = np.zeros((len(a) - 1, len(b) - 1))
+        # R += 1000000000000
 
         rmin = -100
-        klasters_a = []
-        klasters_b = []
-        count = 0
+        klasters_a = [[el] for el in a.tolist()]
+        klasters_b = [[el] for el in b.tolist()]
+        # print(klasters_b)
+        count = 1
         while rmin < 70:
 
-            if count == 0:
-                count += 1
-                for i in range(R.shape[0] - 1):
-                    for j in range(i + 1, R.shape[1]):
-                        R[i, j] = math.sqrt((a[i] - a[j]) ** 2 + (b[i] - b[j]) ** 2)
-
-                rmin = R.min()
-                for i in range(R.shape[0] - 1):
-                    perem_a.append(a[i])
-                    perem_b.append(b[i])
-                    for j in range(i + 1, R.shape[1]):
-                        if rmin == R[i, j]:
-                            perem_a.append(a[j])
-                            perem_b.append(b[j])
-                            R[i, j] = 1000000000000
-                    klasters_a.append(perem_a)
-                    klasters_b.append(perem_b)
-                    perem_a = []
-                    perem_b = []
+            # if count == 0:
+            #     count += 1
+            #     for i in range(R.shape[0] - 1):
+            #         for j in range(i + 1, R.shape[1]):
+            #             R[i, j] = math.sqrt((a[i] - a[j]) ** 2 + (b[i] - b[j]) ** 2)
+            #
+            #     rmin = R.min()
+            #     for i in range(R.shape[0] - 1):
+            #         perem_a.append(a[i])
+            #         perem_b.append(b[i])
+            #         for j in range(i + 1, R.shape[1]):
+            #             if rmin == R[i, j]:
+            #                 perem_a.append(a[j])
+            #                 perem_b.append(b[j])
+            #                 R[i, j] = 1000000000000
+            #         klasters_a.append(perem_a)
+            #         klasters_b.append(perem_b)
+            #         perem_a = []
+            #         perem_b = []
 
             R = np.zeros((len(klasters_a), len(klasters_b)))
-            R += 1000000000000
-            new_klast_a = []
-            new_klast_b = []
-            if count != 0:
-                print(klasters_b)
-                for i in range(len(klasters_a)):
-                    for j in range(i + 1, len(klasters_b)):
-                        R[i, j] = math.sqrt(
+            R += 10000
+
+            # if count > 0:
+                # print(klasters_b)
+            for i in range(len(klasters_a)):
+                for j in range(i + 1, len(klasters_b)):
+                    R[i, j] = math.sqrt(
                             (sum(klasters_a[i]) / len(klasters_a[i]) - sum(klasters_a[j]) / len(klasters_a[j])) ** 2 + (
                                     sum(klasters_b[i]) / len(klasters_b[i]) - sum(klasters_b[j]) / len(
                                 klasters_b[j])) ** 2)
-                        # R[i, j] = math.sqrt(
-                        #     np.sum(list(set(klasters_a[i]) - set(klasters_a[j])) ** 2) + np.sum(
-                        #                 list(set(klasters_b[i]) - set(klasters_b[j])) ** 2))
 
-                rmin = R.min()
-                Rmin = np.where(R == R.min())
-                # print(Rmin)
-                for i in range(len(Rmin[0])):
-                    if klasters_a[Rmin[0][i]] != -10 and klasters_b[Rmin[0][i]] != -10 and klasters_a[Rmin[1][i]] != -10 and klasters_b[Rmin[1][i]] != -10:
-                        klasters_a[Rmin[0][i]] = klasters_a[Rmin[0][i]] + klasters_a[Rmin[1][i]]
-                        klasters_b[Rmin[0][i]] = klasters_b[Rmin[0][i]] + klasters_b[Rmin[1][i]]
-                        klasters_a[Rmin[1][i]] = -10
-                        klasters_b[Rmin[1][i]] = -10
-                count += 1
+
+            rmin = R.min()
+
+            # print(len(klasters_a))
+            ri, rj = np.where(R == rmin)
+            print(rj, ri)
+            for i in range(len(ri)-1,-1,-1):
+                # print(rj[i], len(klasters_a))
+                klasters_a[ri[i]] = klasters_a[ri[i]] + klasters_a[rj[i]]
+                klasters_b[ri[i]] = klasters_b[ri[i]] + klasters_b[rj[i]]
+                klasters_b.pop(rj[i])
+                klasters_a.pop(rj[i])
+
         print(klasters_b)
-        print(Rmin)
-        print(len(klasters_b), len(klasters_a))
+        print(klasters_a)
 
         amin, amax, bmin, bmax = 0, 0, 0, 0
-        for i in range(len(klasters_a) - 1):
+
+        for i in range(len(klasters_a)):
             bmin = min(klasters_b[i])
             bmax = max(klasters_b[i])
             amin = min(klasters_a[i])
