@@ -10,6 +10,7 @@ def find_clusters(contours):
     klasters_b = [[b[i]] for i in range(0, len(b), 20)]
     if len(a) > 0 and len(b) > 0:
 
+
         while True:
 
             clusters_a_mean = np.array(list(map(np.mean, klasters_a)))
