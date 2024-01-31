@@ -3,8 +3,8 @@ import skimage.color
 import math
 import numpy as np
 
-cap = cv2.VideoCapture("http://192.168.217.103/mjpg/video.mjpg")  # видео поток с веб камеры
-# cap = cv2.VideoCapture("IMG_8546.MP4")
+# cap = cv2.VideoCapture("http://192.168.217.103/mjpg/video.mjpg")  # видео поток с веб камеры
+cap = cv2.VideoCapture("IMG_8546.MP4")
 #cap.set(3, 1280)  # установка размера окна
 #cap.set(4, 700)
 
