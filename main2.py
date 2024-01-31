@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import Gaussian_filter_no_opencv as gauss
+import gaussian_filter_no_opencv as gauss
 import skimage
 import scipy
 
@@ -9,7 +9,6 @@ def find_clusters(contours):
     klasters_a = [[a[i]] for i in range(0, len(a), 20)]
     klasters_b = [[b[i]] for i in range(0, len(b), 20)]
     if len(a) > 0 and len(b) > 0:
-
 
         while True:
 
@@ -55,7 +54,6 @@ while cap.isOpened():
     # Чтение нового кадра
     ret, frame2 = cap.read()
     frame2 = frame2[:-50, :]
-    mask2 = np.zeros_like(frame2)
 
     # Преобразование кадров в формат float32
     img_f1 = frame1.astype(np.float32)
@@ -104,6 +102,7 @@ while cap.isOpened():
 
     # Добавление точек в историю
         history_points.append(corners)
+        print(history_points)
 
     # Используем оптический поток для отслеживания точек
     if len(history_points) > 1:

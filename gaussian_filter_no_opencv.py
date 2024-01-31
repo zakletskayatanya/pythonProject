@@ -1,5 +1,4 @@
 import numpy as np
-import math
 import spicy
 
 class GaussianFilter:
@@ -36,11 +35,6 @@ class GaussianFilter:
         for j in range(image.shape[1]):
             for i in range(radius, image.shape[0] - radius):
                 prom[i, j] = np.sum(np.multiply(image[(i - radius):(i + radius + 1), j], self.kernel))
-
-                # s = 0
-                # for k in range(-radius, radius+1):
-                #     s += image[i+k, j] * self.kernel[k+radius]
-                # prom[i, j] = s
 
         blur = prom
         return blur
