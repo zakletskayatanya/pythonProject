@@ -48,4 +48,4 @@ class VideoProcessingWithoutOpencv:
 
             self.history_points.append(trecker_points)
 
-        return frame1, self.history_points
+        return frame1, self.history_points, contours.astype('ubyte')

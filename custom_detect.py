@@ -10,8 +10,10 @@ from sklearn import cluster
 import itertools
 
 # cap = cv2.VideoCapture("http://192.168.217.103/mjpg/video.mjpg")  # видео поток с веб камеры
-cap = cv2.VideoCapture("IMG_8546.MP4")  # видео поток с веб камеры
-
+cap = cv2.VideoCapture("229-video.mp4")
+# видео поток с веб камеры
+cv2.namedWindow("main", cv2.WINDOW_NORMAL)
+cv2.resizeWindow('main', 1000, 700)
 # cap.set(3, 200)  # установка размера окна
 # cap.set(4, 300)
 
@@ -31,7 +33,7 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
     blur_custom = gauss.GaussianFilter(7).gauss_blur(gray_custom)
     # blur_custom = blur_custom.astype(np.ubyte)
     # thresh_custom = np.clip(blur_custom, 10, 255)
-    threshold = 20  # переход к бинарному изображению
+    threshold = 40  # переход к бинарному изображению
     thresh_custom = 255 * (blur_custom > threshold)
     thresh_custom = thresh_custom.astype(np.ubyte)
 
@@ -53,8 +55,8 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
         # R += 1000000000000
 
         rmin = -100
-        klasters_a = [[el] for el in a.tolist()]
-        klasters_b = [[el] for el in b.tolist()]
+        klasters_a = [[a[i]] for i in range(0, len(a), 20)]
+        klasters_b = [[b[i]] for i in range(0, len(a), 20)]
         # print(klasters_b)
         count = 1
         while rmin < 70:
@@ -121,7 +123,7 @@ while cap.isOpened():  # метод isOpened() выводит статус ви�
 
     contours = contours.astype(np.ubyte)
 
-    cv2.imshow("frame1", frame1)
+    cv2.imshow("main", frame1)
     print("1")
     frame1 = frame2  #
     ret, frame2 = cap.read()  #

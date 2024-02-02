@@ -34,7 +34,7 @@ def find_clusters(contours):
     return klasters_a, klasters_b
 
 # Открываем видео
-cap = cv2.VideoCapture("111.mp4")
+cap = cv2.VideoCapture("229-video.mp4")
 
 # Чтение первого кадра
 ret1, frame1 = cap.read()

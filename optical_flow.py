@@ -8,18 +8,17 @@ class OpticalFlowProcessor:
         self.color = np.random.randint(0, 255, (100, 3))
         self.mask = np.zeros_like(frame1)
         self.lk_params = dict(winSize=(15, 15), maxLevel=2,
-                         criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+                              criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
     def calculate_optical_flow(self, frame1, frame2, history_points):
         if len(history_points) > 1:
             prev_points = np.concatenate(history_points[-2], axis=0)
-            next_points, st, err = cv2.calcOpticalFlowPyrLK(
-                cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY),
-                cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY),
-                prev_points,
-                None,
-                **self.lk_params
-            )
+            next_points, st, err = cv2.calcOpticalFlowPyrLK(cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY),
+                                                            cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY),
+                                                            prev_points,
+                                                            None,
+                                                            **self.lk_params
+                                                            )
 
             good_new = next_points[st.flatten() == 1]
 

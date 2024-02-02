@@ -32,3 +32,4 @@ class VideoProcessingWithOpencv:
             if cv2.contourArea(contour) < 500:  # условие при котором площадь выделенного объекта меньше 700 px
                 continue
             cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)  # получение прямоугольника из точек кортежа
+        return frame1
