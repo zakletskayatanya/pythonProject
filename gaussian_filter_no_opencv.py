@@ -2,7 +2,7 @@ import numpy as np
 import spicy
 
 class GaussianFilter:
-    sigma_ = 2
+    sigma_ = 3
 
     def __init__(self, kernel_size):
         # assert self.kernelSize_ % 2 != 1, "Kernel size must be uneven number"
