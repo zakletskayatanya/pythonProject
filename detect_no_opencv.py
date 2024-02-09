@@ -16,13 +16,16 @@ class VideoProcessingWithoutOpencv:
         difference = np.abs(img_first - img_second)
         gray_img = skimage.color.rgb2gray(difference)
 
-        blur_img = gauss.GaussianFilter(7).gauss_blur(gray_img)
-        threshold = 40
+        blur_img = gauss.GaussianFilter(9).gauss_blur(gray_img)
+        threshold = 20
         threshold_img = 255 * (blur_img > threshold)
 
         contours = 255 * (np.abs(threshold_img[:-1, :] - threshold_img[1:, :]) > 0)
+        cont = [contours[i] for i in range(0, len(contours), 20)]
+        cont = np.array(cont)
 
-        clust = clusters.find_clusters(contours)
+        clust = clusters.predict(contours)
+        clust = np.array(clust)
 
         # Отрисовка рамок вокруг объектов
         # крайние точки рамок
@@ -32,12 +35,12 @@ class VideoProcessingWithoutOpencv:
 
         if len(clust) != 0:
             for i in range(len(clust)):
-                x = [clust[i][j] for j in range(0, len(clust[i]), 2)]
-                y = [clust[i][j] for j in range(1, len(clust[i]), 2)]
-                y_min = min(y)
-                y_max = max(y)
-                x_min = min(x)
-                x_max = max(x)
+                # x = [clust[i][j] for j in range(0, len(clust[i]), 2)]
+                # y = [clust[i][j] for j in range(1, len(clust[i]), 2)]
+                y_min = (clust[i][0][1])
+                y_max = (clust[i][1][1])
+                x_min = (clust[i][0][0])
+                x_max = (clust[i][1][0])
 
                 trecker_x[i] = int((x_min + x_max) // 2)
                 trecker_y[i] = int((y_max + y_min) // 2)
@@ -50,4 +53,4 @@ class VideoProcessingWithoutOpencv:
 
             self.history_points.append(trecker_points)
 
-        return frame1, self.history_points, contours.astype('ubyte')
+        return frame1, self.history_points, cont.astype('ubyte')
