@@ -3,6 +3,7 @@ import detect_no_opencv
 import detect_with_opencv
 import optical_flow
 
+
 class VideoShowing:
 
     def init(self, video_path):
@@ -30,11 +31,11 @@ class VideoShowing:
 
             detect_img, points_for_optical_flow, con = self.detect_no_opencv.detect_without_opencv(frame1, frame2)
 
-            # trecker_img = trecker.calculate_optical_flow(detect_img, frame2, points_for_optical_flow)
+            trecker_img = trecker.calculate_optical_flow(detect_img, frame2, points_for_optical_flow)
 
             # detect_img1 = self.detect_opencv.detect_with_opencv(frame1, frame2)
 
-            cv2.imshow("main", con)
+            cv2.imshow("main", trecker_img)
             frame1 = frame2
 
             if cv2.waitKey(40) == 27:
@@ -43,8 +44,10 @@ class VideoShowing:
         self.cap.release()
         cv2.destroyAllWindows()
 
+
 vid = VideoShowing()
-vid.init("226-video.mp4")
+vid.init("229-video.mp4")
 # vid.init("IMG_8546.MP4")
 # vid.init("111.mp4")
+# vid.init("http://192.168.217.103/mjpg/video.mjpg")
 vid.run()
