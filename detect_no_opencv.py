@@ -3,6 +3,7 @@ import gaussian_filter_no_opencv as gauss
 import skimage
 import clusters
 import clusters_dbscan
+import cluusters_ierarh
 from sklearn.cluster import DBSCAN
 
 
@@ -19,18 +20,21 @@ class VideoProcessingWithoutOpencv:
         gray_img = skimage.color.rgb2gray(difference)
 
         blur_img = gauss.GaussianFilter(9).gauss_blur(gray_img)
-        threshold = 20
+        threshold = 30
         threshold_img = 255 * (blur_img > threshold)
 
-        contours = 255 * (np.abs(threshold_img[:-1, :] - threshold_img[1:, :]) > 0)
-        cont = [contours[i] for i in range(0, len(contours), 50)]
-        cont = np.array(cont)
+
+        # contours = 255 * (np.abs(threshold_img[:-1, :] - threshold_img[1:, :]) > 0)
+        # cont = [threshold_img[i] for i in range(0, len(threshold_img), 30)]
+        # cont = np.array(cont)
         # clust = True
 
         # clust = clusters.predict(contours)
         # clust = np.array(clust)
 
-        clust = clusters_dbscan.dbscan_naive(contours, 15, 2)
+        clust = clusters_dbscan.dbscan_naive(threshold_img, 20, 7)
+        # clust = cluusters_ierarh.agglomerative_clustering(contours)
+        # print(len(clust[1]))
         # x, y = np.nonzero(contours == 255)  # координаты контуров
         # if len(x) < 1 or len(y) < 1 or len(x) > 10000 or len(y) > 10000:
         #     clust = None
@@ -79,9 +83,9 @@ class VideoProcessingWithoutOpencv:
         if clust is not None:
             clust.pop(-10)
             print(clust)
-            trecker_y, trecker_x = np.zeros(len(clust)-1), np.zeros(len(clust)-1)
+            trecker_y, trecker_x = np.zeros(len(clust)), np.zeros(len(clust))
             # x_min, x_max, y_min, y_max = 0, 0, 0, 0
-            for i in range(len(clust)-1):
+            for i in range(len(clust)):
                 x = [clust[i][j][0] for j in range(len(clust[i]))]
                 y = [clust[i][j][1] for j in range(len(clust[i]))]
                 y_min = min(y)
@@ -100,4 +104,4 @@ class VideoProcessingWithoutOpencv:
 
             # self.history_points.append(trecker_points)
 
-        return frame1, self.history_points, cont.astype('ubyte')
+        return frame1, self.history_points, threshold_img.astype('ubyte')
