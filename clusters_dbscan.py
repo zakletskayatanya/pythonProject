@@ -1,17 +1,14 @@
 import numpy as np
 
 
-
 def dbscan_naive(contours, eps, m):
     x, y = np.nonzero(contours)
-    if len(x) < 1 or len(y) < 1 or len(x) > 50000 or len(y) > 50000:
+    if len(x) < 1 or len(y) < 1:
         return None
-    xx = [x[i] for i in range(0, len(x), 30)]
-    yy = [y[i] for i in range(0, len(y), 30)]
+    xx = x[::30]
+    yy = y[::30]
     points = np.column_stack((xx, yy))
     # print(points)
-
-
     # p_ = np.array(points)
     # print(type(points))
     NOISE = -10
@@ -29,26 +26,37 @@ def dbscan_naive(contours, eps, m):
         clusters[C].append(p)
         clustered_points.append(p)
         while len(neighbours) > 0:
-            q = neighbours.pop()
-            if not np.array_equal(q, visited_points):
+            q = neighbours[len(neighbours) - 1]
+            # ppp=[np.array([20, 451]),np.array([280, 1])]
+            # print(ppp)
+            neighbours = np.delete(neighbours, -1, 0)
+            # oo = np.all(q == ppp, axis=0)
+            # print(oo.any())
+            # print((q == visited_points))
+            # print("ds")
+            # print(np.all(q == visited_points, axis=1))
+            # print(np.all(q == visited_points, axis=1).any())
+            if not np.all(q == visited_points, axis=1).any():
                 visited_points.append(q)
-                q_indx = np.where((points[:,0] == q[0]) & (points[:,1] == q[1]))[0]
-                neighbourz_indx = np.where(dist[q_indx] < eps)[0]
+                q_indx = np.where((points[:, 0] == q[0]) & (points[:, 1] == q[1]))[0]
+                neighbourz_indx = np.where(dist[q_indx] < eps)[1]
                 neighbourz = points[neighbourz_indx]
-                if len(neighbourz) >= m:
-                    neighbours.extend(neighbourz)
-            if not np.array_equal(q, clustered_points):
+                if len(neighbourz) > m:
+                    neighbours = np.append(neighbours, neighbourz, 0)
+            if not np.all(q == clustered_points, axis=1).any():
                 clustered_points.append(q)
                 clusters[C].append(q)
-                if np.array_equal(q, clusters[NOISE]):
-                    clusters[NOISE].remove(q)
+                # if np.all(q == clusters[NOISE], axis=1).any():
+                #     print(q)
+                #     print(clusters[NOISE])
+                #     (clusters[NOISE].remove(q)).any()
 
     for i, p in enumerate(points):
-        if np.array_equal(p, visited_points):
+        if len(visited_points) > 0 and (p == visited_points).any():
             continue
         visited_points.append(p)
         neighbours_indx = np.where(dist[i] < eps)[0]
-        neighbours = list(points[neighbours_indx])
+        neighbours = points[neighbours_indx]
         if len(neighbours) < m:
             clusters[NOISE].append(p)
         else:
