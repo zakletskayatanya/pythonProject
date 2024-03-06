@@ -1,30 +1,46 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 
 
-def euclidean_distance(point1, point2):
-    return np.linalg.norm(point1 - point2)
+def distance(cluster1, cluster2):
+    return cdist(cluster1, cluster2)
 
 
-def single_linkage(cluster1, cluster2):
-    return min(euclidean_distance(point1, point2) for point1 in cluster1 for point2 in cluster2)
+def min_distance(cluster1, cluster2):
+    return np.min(distance(cluster1, cluster2))
 
 
-def agglomerative_clustering(contours):
-    x, y = np.nonzero(contours == 255)
+def find_clusters(contours):
+    if contours.shape[0] < 0:
+        return None
+    x, y = np.nonzero(contours)
+    points = np.column_stack((x[::20], y[::20]))
 
-    clusters = np.column_stack((x, y))
-    clusters = [clusters[i] for i in range(0, len(clusters), 10)]
+    clusters = [[i] for i in points]
     min_dist = 0
-    # clusters = [[point] for point in data]
 
     while min_dist < 100:
-        # print(clusters)
-        distances = [(i, j, single_linkage(clusters[i], clusters[j]))
-                     for i in range(len(clusters)) for j in range(i + 1, len(clusters))]
-        i, j, min_dist = min(distances)
-        # print(min_dist)
 
-        clusters[i] = np.row_stack((clusters[i], clusters[j]))
-        del clusters[j]
+        P = np.zeros((len(clusters), len(clusters)))
+
+        for i in range(len(clusters)):
+            cluster1 = np.array(clusters[i])
+            for j in range(i + 1, len(clusters)):
+                cluster2 = np.array(clusters[j])
+                P[i, j] = min_distance(cluster1, cluster2)
+
+        P = np.where(P == 0, float('inf'), P)
+
+        min_dist = np.min(P)
+
+        min_index_i, min_index_j = np.where(P == min_dist)
+        min_index = np.column_stack((min_index_i, min_index_j))
+        min_index = sorted(min_index, key=lambda k:[k[0], k[1]])
+
+        for i in range(len(min_index) - 1, 0, -1):
+            clusters[min_index[i][0]].extend(clusters[min_index[i][1]])
+
+        for i in sorted(set(min_index_j), reverse=True):
+            clusters.pop(i)
 
     return clusters

@@ -12,7 +12,7 @@ class VideoShowing:
         self.detect_opencv = detect_with_opencv.VideoProcessingWithOpencv()
 
         cv2.namedWindow("main", cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('main', self.read_frame().shape[1]//2, self.read_frame().shape[0]//2)
+        cv2.resizeWindow('main', 960, 540)
 
     def read_frame(self):
         ret, frame = self.cap.read()
@@ -23,10 +23,13 @@ class VideoShowing:
 
     def run(self):
         frame1 = self.read_frame()
-        trecker = optical_flow.OpticalFlowProcessor(frame1)
+        frame2 = self.read_frame()
+
+        # trecker = optical_flow.OpticalFlowProcessor(frame1)
         while self.cap.isOpened():
-            frame2 = self.read_frame()
             if frame2 is None:
+                break
+            if frame1 is None:
                 break
 
             detect_img, points_for_optical_flow, con = self.detect_no_opencv.detect_without_opencv(frame1, frame2)
@@ -37,8 +40,9 @@ class VideoShowing:
 
             cv2.imshow("main", detect_img)
             frame1 = frame2
+            frame2 = self.read_frame()
 
-            if cv2.waitKey(40) == 27:
+            if cv2.waitKey(1) == 27:
                 break
 
         self.cap.release()
