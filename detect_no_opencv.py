@@ -66,6 +66,7 @@ class VideoProcessingWithoutOpencv:
                 gradient_direction[i,j] = np.where(grad == np.max([gradient_direction[i,j], gradient_direction[i+1,j+1],gradient_direction[i-1,j-1]]), grad, 0)
                 continue
 
+
         top_threshhold = 200
         low_threshhold = 30
 
