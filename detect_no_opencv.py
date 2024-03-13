@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import gaussian_filter_no_opencv as gauss
 import skimage
@@ -24,12 +26,6 @@ class VideoProcessingWithoutOpencv:
         gray_img2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
         diff = cv2.absdiff(gray_img1, gray_img2)
 
-        # difference = np.abs(img_first - img_second)
-        # gray_img = skimage.color.rgb2gray(difference)
-
-          # нахождение разницы двух кадров, которая проявляется лишь при изменении одного из них, т.е. с этого момента наша программа реагирует на любое движение.
-        # gray_img = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
-
         blur_img = gauss.GaussianFilter(5).gauss_blur(diff)
 
         sobel_x = np.array([[1, 0, -1],
@@ -42,55 +38,56 @@ class VideoProcessingWithoutOpencv:
 
         gradient_x = convolve2d(blur_img, sobel_x, mode='same')
         gradient_y = convolve2d(blur_img, sobel_y, mode='same')
-        gradient_magnitude = np.sqrt(gradient_x ** 2 + gradient_y ** 2)
-        # gradient_direction = np.arctan2(gradient_y, gradient_x)
 
-        gradient_magnitude = np.where(gradient_magnitude > 120, 255, 0)
-
-
+        # Gx = np.zeros_like(blur_img)
+        # Gy = np.zeros_like(blur_img)
+        #
         # for i in range(1, blur_img.shape[0]-1):
         #     for j in range(1, blur_img.shape[1]-1):
         #         Gx[i, j] = np.sum(np.multiply(blur_img[(i - 1):(i + 2), (j - 1):(j + 2)], sobel_x))
         #         Gy[i, j] = np.sum(np.multiply(blur_img[(i - 1):(i + 2), (j - 1):(j + 2)], sobel_y))
+        # gradient_magnitude = np.sqrt(Gx ** 2 + Gy ** 2)
 
+        gradient_magnitude = np.sqrt(gradient_x ** 2 + gradient_y ** 2)
 
-        # threshold = 20
-        # threshold_img = np.where(blur_img > threshold, 255, 0)
-        _, threshold_img = cv2.threshold(blur_img, 25, 255, cv2.THRESH_BINARY)
+        gradient_direction = np.arctan2(gradient_y, gradient_x) * 180 / math.pi
+        print(gradient_direction.shape)
 
-        # contours = 255 * (np.abs(threshold_img[:-1, :] - threshold_img[1:, :]) > 0)
-        # cont = [threshold_img[i] for i in range(0, len(threshold_img), 30)]
-        # cont = np.array(cont)
-        # clust = True
+        for (i,j), grad in np.ndenumerate(gradient_direction):
+            if i == 0 or j ==0 or i == gradient_direction.shape[0]-1 or j == gradient_direction.shape[1]-1:
+                continue
+            if -10 < grad < 10 or 170 < grad < 190:
+                gradient_direction[i,j] = np.where(grad == np.max([gradient_direction[i,j], gradient_direction[i-1,j],gradient_direction[i+1,j]]), grad, 0)
+                continue
+            if 35 < grad < 55 or 215 < grad < 235:
+                gradient_direction[i,j] = np.where(grad == np.max([gradient_direction[i,j], gradient_direction[i-1,j+1],gradient_direction[i+1,j-1]]), grad, 0)
+                continue
+            if 125 < grad < 145 or 305 < grad < 325:
+                gradient_direction[i,j] = np.where(grad == np.max([gradient_direction[i,j], gradient_direction[i+1,j+1],gradient_direction[i-1,j-1]]), grad, 0)
+                continue
 
-        # clust = clusters.predict(contours)
-        # clust = np.array(clust)
+        top_threshhold = 200
+        low_threshhold = 30
 
-        cc = clusters_dbscan.dbscan_naive(gradient_magnitude, 20, 3)
+        gradient_magnitude = np.where(gradient_magnitude >= top_threshhold, 255, gradient_magnitude)
+        gradient_magnitude = np.where(gradient_magnitude <= low_threshhold, 0, gradient_magnitude)
+        # проверить это дома
+        gradient_magnitude = np.where(low_threshhold >= gradient_magnitude and gradient_magnitude <= top_threshhold, 100, gradient_magnitude)
+
+        # cc = clusters_dbscan.dbscan_naive(gradient_magnitude, 20, 3)
         # clust = clusters.find_objects(gradient_magnitude)
         # print(cc)
-        clust = cluusters_ierarh.find_clusters(gradient_magnitude)
-        print(clust)
+        cc = cluusters_ierarh.find_clusters(gradient_magnitude)
 
         if cc is not None:
-            # clust.pop(-10)
-            # print(clust)
             # trecker_y, trecker_x = np.zeros(len(clust)), np.zeros(len(clust))
             # x_min, x_max, y_min, y_max = 0, 0, 0, 0
-            for key, cluster in cc.items():
-                cluster_array = np.array(cluster)
-                yy, xx, h, w = cv2.boundingRect(cluster_array)
+            for cluster in cc:
+                # cluster_array = np.array(cluster)
+                xx, yy, w, h = cv2.boundingRect(np.array(cluster))
 
-                # if len(cluster_array) < 10:
-                #     continue
-                if cv2.contourArea(cluster_array) < 50:  # условие при котором площадь выделенного объекта меньше 700 px
-                    continue
-                point_min = np.min(cluster_array, axis=0)
-                point_max = np.max(cluster_array, axis=0)
-                cv2.rectangle(frame1, (xx, yy), (xx + w, yy+h), (0, 255, 0), 2)
-
-                # cv2.rectangle(frame1, (point_min[1], point_min[0]), (point_max[1], point_max[0]), (0, 255, 0), 2)
-
+                if cv2.contourArea(np.array(cluster)) > 25:  # условие при котором площадь выделенного объекта меньше 700 px
+                    cv2.rectangle(frame1, (xx, yy), (xx + w, yy+h), (0, 255, 0), 2)
             # trecker_points = np.column_stack([trecker_y, trecker_x]).astype(np.float32)
             # trecker_points = trecker_points.reshape(-1, 1, 2)
 

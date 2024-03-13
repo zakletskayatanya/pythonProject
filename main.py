@@ -4,7 +4,7 @@ import math
 import numpy as np
 
 # cap = cv2.VideoCapture("http://192.168.217.103/mjpg/video.mjpg")  # видео поток с веб камеры
-cap = cv2.VideoCapture("229-video.mp4")
+cap = cv2.VideoCapture("227-video.mp4")
 #cap.set(3, 1280)  # установка размера окна
 #cap.set(4, 700)
 
