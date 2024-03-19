@@ -16,8 +16,9 @@ def find_clusters(contours):
         return None
     y, x = np.nonzero(contours)
     points = np.column_stack((x, y))
+    print(len(points))
 
-    clusters = [[i] for i in points[::10]]
+    clusters = [[i] for i in points[::150]]
     min_dist = 0
     ii = 0
     jj = 1
@@ -34,7 +35,7 @@ def find_clusters(contours):
 
         cluster1 = clusters[ii]
         cluster2 = clusters[jj]
-        if np.min(cdist(cluster1, cluster2)) < 10:
+        if np.min(cdist(cluster1, cluster2)) < 5:
             cluster1.extend(cluster2)
             clusters.pop(jj)
         else:
