@@ -18,82 +18,99 @@ class VideoProcessingWithoutOpencv:
         self.history_points = []
 
     def detect_without_opencv(self, frame1, frame2):
-        dim = (960, 540)
+        dim = (840, 480)
         frame1 = cv2.resize(frame1, dim, interpolation=cv2.INTER_AREA)
         frame2 = cv2.resize(frame2, dim, interpolation=cv2.INTER_AREA)
         diff = cv2.absdiff(frame1, frame2)
         gray_img1 = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+        gray_img1 = gray_img1.astype(np.float32)
 
         blur_img1 = gauss.GaussianFilter(5).gauss_blur(gray_img1)
 
+        sobel_x = np.array([[1, 0, -1],
+                            [2, 0, -2],
+                            [1, 0, -1]])
 
-
-        sobel_x = np.array([[-1, 0, 1],
-                            [-2, 0, 2],
-                            [-1, 0, 1]])
-
-        sobel_y = np.array([[-1, -2, -1],
+        sobel_y = np.array([[1, 2, 1],
                             [0, 0, 0],
-                            [1, 2, 1]])
+                            [-1, -2, -1]])
+
+        sobel_time = np.array([[-1, -1, -1],
+                            [-1, 8, -1],
+                            [-1, -1, -1]])
 
         gradient_x = convolve2d(blur_img1, sobel_x, mode='same')
         gradient_y = convolve2d(blur_img1, sobel_y, mode='same')
+        gradient_time = convolve2d(blur_img1, sobel_time, mode='same')
 
         gradient_magnitude = np.sqrt(gradient_x ** 2 + gradient_y ** 2)
         gradient_direction = np.arctan2(gradient_y, gradient_x) * 180 / math.pi
+        gradient_direction = np.round(gradient_direction / 45) * 45  # округление до красности 45
 
-        for i in range(1, gradient_direction.shape[0] - 1):
-            for j in range(1, gradient_direction.shape[1] - 1):
-                grad = gradient_direction[i, j]
-                local_max = gradient_magnitude[i, j]
-                if local_max == 0:
-                    continue
+        suppressed = np.zeros_like(gradient_magnitude)
+        angle = gradient_direction
 
-                neighborhood_x = [gradient_magnitude[i + k, j] for k in range(-1, 2)]
-                neighborhood_y = [gradient_magnitude[i , j+k] for k in range(-1, 2)]
-                neighborhood_diag1 = [gradient_magnitude[i + k, j + k] for k in range(-1, 2)]
-                neighborhood_diag2 = [gradient_magnitude[i + k, j - k] for k in range(-1, 2)]
+        neighbors = np.zeros_like(gradient_magnitude)
 
-                if -20 < grad < 20 or 160 < grad < 200 or -160 < grad < -200:
-                    gradient_magnitude[i, j] = np.where(local_max == max(neighborhood_x), local_max, 0)
-                elif 70 < grad < 110 or -70 < grad < -110 or -250 < grad < -290 or 250 < grad < 290:
-                    gradient_magnitude[i, j] = np.where(local_max == max(neighborhood_y), local_max, 0)
-                elif 25 < grad < 65 or 205 < grad < 245 or -25 < grad < -65 or -205 < grad < -245:
-                    gradient_magnitude[i, j] = np.where(local_max == max(neighborhood_diag1), local_max, 0)
-                elif 115 < grad < 155 or 295 < grad < 335 or -115 < grad < -155 or -295 < grad < -335:
-                    gradient_magnitude[i, j] = np.where(local_max == max(neighborhood_diag2), local_max, 0)
+        # Соседи по горизонтали
+        neighbors[:, :-1] = gradient_magnitude[:, 1:]
+        neighbors[:, 1:] = gradient_magnitude[:, :-1]
 
-        top_threshhold = 240
-        low_threshhold = 60
+        # Соседи по вертикали
+        neighbors[:-1, :] = np.maximum(neighbors[:-1, :], gradient_magnitude[1:, :])
+        neighbors[1:, :] = np.maximum(neighbors[1:, :], gradient_magnitude[:-1, :])
 
-        gradient_magnitude = np.where(gradient_magnitude >= top_threshhold, 255, gradient_magnitude)
-        gradient_magnitude = np.where(gradient_magnitude <= low_threshhold, 0, gradient_magnitude)
-        gradient_magnitude = np.where((low_threshhold <= gradient_magnitude) & (gradient_magnitude <= top_threshhold),
-                                      100, gradient_magnitude)
+        # Соседи по диагонали (все четыре направления)
+        neighbors_diag1 = np.zeros_like(gradient_magnitude)
+        neighbors_diag2 = np.zeros_like(gradient_magnitude)
+
+        neighbors_diag1[:-1, :-1] = gradient_magnitude[1:, 1:]  # Сосед по диагонали влево вниз
+        neighbors_diag1[1:, 1:] = np.maximum(neighbors_diag1[1:, 1:], gradient_magnitude[:-1, :-1])
+
+        neighbors_diag2[:-1, 1:] = gradient_magnitude[1:, :-1]  # Сосед по диагонали вправо вниз
+        neighbors_diag2[1:, :-1] = np.maximum(neighbors_diag2[1:, :-1], gradient_magnitude[:-1, 1:])
+
+        mask_horizontal = np.logical_or(angle == 0, angle == 180, angle == -180)  # Горизонтальное направление
+        mask_diag1 = np.logical_or(angle == 45, angle == -135)  # Диагональное направление 1
+        mask_vertical = np.logical_or(angle == 90, angle == -90)  # Вертикальное направление
+        mask_diag2 = np.logical_or(angle == 135, angle == -45)  # Диагональное направление 2
+
+        max_neighbors = np.zeros_like(gradient_magnitude)
+        max_neighbors[mask_horizontal] = neighbors[mask_horizontal]
+        max_neighbors[mask_diag1] = neighbors[mask_diag1]
+        max_neighbors[mask_vertical] = neighbors[mask_vertical]
+        max_neighbors[mask_diag2] = neighbors[mask_diag2]
+
+        suppressed = np.where(gradient_magnitude >= max_neighbors, gradient_magnitude, suppressed)
+
+        top_threshhold = 120
+        low_threshhold = 80
+
+        suppressed = np.where(suppressed >= top_threshhold, 255, suppressed)
+        suppressed = np.where(suppressed <= low_threshhold, 0, suppressed)
+        suppressed = np.where((low_threshhold <= suppressed) & (suppressed <= top_threshhold),
+                              100, suppressed)
 
         # trassirovka = np.column_stack(np.where(gradient_magnitude == 100))
         #
         # for el in trassirovka:
         #     i, j = el
-        #     neighborhood = [gradient_magnitude[i+k, j+k] for k in range(-1,1)]
-        #     gradient_magnitude[i, j] = np.where(neighborhood == 255, 255, 0)
+        #     neighborhood = [suppressed[i+k, j+k] for k in range(-1,1)]
+        #     suppressed[i, j] = np.where(neighborhood == 255, 255, 0)
 
         # cc = clusters_dbscan.dbscan_naive(gradient_magnitude, 20, 3)
         # clust = clusters.find_objects(gradient_magnitude)
         # print(cc)
-        cc = cluusters_ierarh.find_clusters(gradient_magnitude)
-
+        cc = cluusters_ierarh.find_clusters(suppressed)
+        trecker_rect = []
         if cc is not None:
-            # trecker_y, trecker_x = np.zeros(len(clust)), np.zeros(len(clust))
-            # x_min, x_max, y_min, y_max = 0, 0, 0, 0
+
             for cluster in cc:
                 xx, yy, w, h = cv2.boundingRect(np.array(cluster))
+                trecker_rect.append([xx, yy, w, h])
 
-                if cv2.contourArea(np.array(cluster)) > 20:  # условие при котором площадь выделенного объекта меньше 700 px
-                    cv2.rectangle(frame1, (xx, yy), (xx + w, yy+h), (0, 255, 0), 2)
-            # trecker_points = np.column_stack([trecker_y, trecker_x]).astype(np.float32)
-            # trecker_points = trecker_points.reshape(-1, 1, 2)
+                if cv2.contourArea(
+                        np.array(cluster)) > 50:  # условие при котором площадь выделенного объекта меньше 700 px
+                    cv2.rectangle(frame1, (xx, yy), (xx + w, yy + h), (0, 255, 0), 2)
 
-            # self.history_points.append(trecker_points)
-
-        return frame1, self.history_points, gradient_magnitude.astype('ubyte')
+        return frame1, trecker_rect, gradient_x, gradient_y, gradient_time, suppressed.astype('ubyte')

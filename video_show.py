@@ -12,7 +12,7 @@ class VideoShowing:
         self.detect_opencv = detect_with_opencv.VideoProcessingWithOpencv()
 
         cv2.namedWindow("main", cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('main', 960, 540)
+        cv2.resizeWindow('main', 840, 480)
 
     def read_frame(self):
         ret, frame = self.cap.read()
@@ -25,17 +25,17 @@ class VideoShowing:
         frame1 = self.read_frame()
         frame2 = self.read_frame()
 
-        # trecker = optical_flow.OpticalFlowProcessor(frame1)
+        trecker = optical_flow.OpticalFlowProcessor(frame1)
         while self.cap.isOpened():
             if frame2 is None:
                 break
             if frame1 is None:
                 break
 
-            detect_img, points_for_optical_flow, con = self.detect_no_opencv.detect_without_opencv(frame1, frame2)
+            detect_img, treck, grad_x, grad_y, grad_time, con = self.detect_no_opencv.detect_without_opencv(frame1, frame2)
 
-            # trecker_img = trecker.calculate_optical_flow(detect_img, frame2, points_for_optical_flow)
-
+            trecker_img = trecker.calculate_optical_flow(detect_img, frame2, treck, grad_x, grad_y, grad_time)
+            # print(trecker_img)
             # detect_img1 = self.detect_opencv.detect_with_opencv(frame1, frame2)
 
             cv2.imshow("main", detect_img)
