@@ -32,13 +32,17 @@ class VideoShowing:
             if frame1 is None:
                 break
 
-            detect_img, treck, grad_x, grad_y, grad_time, con = self.detect_no_opencv.detect_without_opencv(frame1, frame2)
+            dim = (840, 480)
+            frame1 = cv2.resize(frame1, dim, interpolation=cv2.INTER_AREA)
+            frame2 = cv2.resize(frame2, dim, interpolation=cv2.INTER_AREA)
 
-            trecker_img = trecker.calculate_optical_flow(detect_img, frame2, treck, grad_x, grad_y, grad_time)
+            detect_img, treck, grad_x, grad_y, grad_time, con, points = self.detect_no_opencv.detect_without_opencv(frame1, frame2)
+
+            trecker_img, img = trecker.calculate_optical_flow(frame1, frame2, treck, grad_x, grad_y, grad_time, points)
             # print(trecker_img)
             # detect_img1 = self.detect_opencv.detect_with_opencv(frame1, frame2)
 
-            cv2.imshow("main", detect_img)
+            cv2.imshow("main", trecker_img)
             frame1 = frame2
             frame2 = self.read_frame()
 

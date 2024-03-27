@@ -18,12 +18,9 @@ class VideoProcessingWithoutOpencv:
         self.history_points = []
 
     def detect_without_opencv(self, frame1, frame2):
-        dim = (840, 480)
-        frame1 = cv2.resize(frame1, dim, interpolation=cv2.INTER_AREA)
-        frame2 = cv2.resize(frame2, dim, interpolation=cv2.INTER_AREA)
         diff = cv2.absdiff(frame1, frame2)
         gray_img1 = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
-        gray_img1 = gray_img1.astype(np.float32)
+        # gray_img1 = gray_img1.astype(np.float32)
 
         blur_img1 = gauss.GaussianFilter(5).gauss_blur(gray_img1)
 
@@ -108,9 +105,9 @@ class VideoProcessingWithoutOpencv:
             for cluster in cc:
                 xx, yy, w, h = cv2.boundingRect(np.array(cluster))
                 trecker_rect.append([xx, yy, w, h])
+                self.history_points.append([(xx+w)//2, (yy+h)//2])
+                # if cv2.contourArea(
+                #         np.array(cluster)) > 50:  # условие при котором площадь выделенного объекта меньше 700 px
+                    # cv2.rectangle(frame1, (xx, yy), (xx + w, yy + h), (0, 255, 0), 2)
 
-                if cv2.contourArea(
-                        np.array(cluster)) > 50:  # условие при котором площадь выделенного объекта меньше 700 px
-                    cv2.rectangle(frame1, (xx, yy), (xx + w, yy + h), (0, 255, 0), 2)
-
-        return frame1, trecker_rect, gradient_x, gradient_y, gradient_time, suppressed.astype('ubyte')
+        return frame1, trecker_rect, gradient_x, gradient_y, gradient_time, suppressed.astype('ubyte'), self.history_points
