@@ -27,9 +27,7 @@ class VideoShowing:
 
         trecker = optical_flow.OpticalFlowProcessor(frame1)
         while self.cap.isOpened():
-            if frame2 is None:
-                break
-            if frame1 is None:
+            if frame2 is None or frame1 is None:
                 break
 
             dim = (840, 480)
@@ -38,7 +36,7 @@ class VideoShowing:
 
             detect_img, treck, grad_x, grad_y, grad_time, con, points = self.detect_no_opencv.detect_without_opencv(frame1, frame2)
 
-            trecker_img, img = trecker.calculate_optical_flow(frame1, frame2, treck, grad_x, grad_y, grad_time, points)
+            trecker_img, img = trecker.calculate_optical_flow(frame1, frame2, treck, grad_x, grad_y, grad_time, con)
             # print(trecker_img)
             # detect_img1 = self.detect_opencv.detect_with_opencv(frame1, frame2)
 
