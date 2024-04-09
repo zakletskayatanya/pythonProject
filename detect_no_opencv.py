@@ -17,28 +17,23 @@ class VideoProcessingWithoutOpencv:
     def __init__(self):
         self.history_points = []
 
-    def detect_without_opencv(self, frame1, frame2):
-        diff = cv2.absdiff(frame1, frame2)
-        gray_img1 = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
-        # gray_img1 = gray_img1.astype(np.float32)
+    def detect_without_opencv(self, frame1, gradient_x, gradient_y):
+        # diff = cv2.absdiff(frame1, frame2)
+        # gray_img1 = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+        # # gray_img1 = gray_img1.astype(np.float32)
+        #
+        # blur_img1 = gauss.GaussianFilter(5).gauss_blur(gray_img1)
 
-        blur_img1 = gauss.GaussianFilter(5).gauss_blur(gray_img1)
+        # sobel_x = np.array([[1, 0, -1],
+        #                     [2, 0, -2],
+        #                     [1, 0, -1]])
+        #
+        # sobel_y = np.array([[1, 2, 1],
+        #                     [0, 0, 0],
+        #                     [-1, -2, -1]])
 
-        sobel_x = np.array([[1, 0, -1],
-                            [2, 0, -2],
-                            [1, 0, -1]])
-
-        sobel_y = np.array([[1, 2, 1],
-                            [0, 0, 0],
-                            [-1, -2, -1]])
-
-        sobel_time = np.array([[-1, -1, -1],
-                            [-1, 8, -1],
-                            [-1, -1, -1]])
-
-        gradient_x = convolve2d(blur_img1, sobel_x, mode='same')
-        gradient_y = convolve2d(blur_img1, sobel_y, mode='same')
-        gradient_time = convolve2d(blur_img1, sobel_time, mode='same')
+        # gradient_x = convolve2d(blur_img1, sobel_x, mode='same')
+        # gradient_y = convolve2d(blur_img1, sobel_y, mode='same')
 
         gradient_magnitude = np.sqrt(gradient_x ** 2 + gradient_y ** 2)
         gradient_direction = np.arctan2(gradient_y, gradient_x) * 180 / math.pi
@@ -88,13 +83,6 @@ class VideoProcessingWithoutOpencv:
         suppressed = np.where((low_threshhold <= suppressed) & (suppressed <= top_threshhold),
                               100, suppressed)
 
-        # trassirovka = np.column_stack(np.where(gradient_magnitude == 100))
-        #
-        # for el in trassirovka:
-        #     i, j = el
-        #     neighborhood = [suppressed[i+k, j+k] for k in range(-1,1)]
-        #     suppressed[i, j] = np.where(neighborhood == 255, 255, 0)
-
         # cc = clusters_dbscan.dbscan_naive(gradient_magnitude, 20, 3)
         # clust = clusters.find_objects(gradient_magnitude)
         # print(cc)
@@ -110,4 +98,4 @@ class VideoProcessingWithoutOpencv:
                         np.array(cluster)) > 50:  # условие при котором площадь выделенного объекта меньше 700 px
                     cv2.rectangle(frame1, (xx, yy), (xx + w, yy + h), (0, 255, 0), 2)
 
-        return frame1, trecker_rect, gradient_x, gradient_y, gradient_time, suppressed, self.history_points
+        return frame1, trecker_rect, gradient_x, gradient_y, suppressed, self.history_points
