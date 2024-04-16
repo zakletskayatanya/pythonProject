@@ -25,13 +25,13 @@ class VideoShowing:
         return frame
 
     def run(self):
-        count = 0
         frame1 = self.read_frame()
         frame2 = self.read_frame()
 
         trecker = optical_flow.OpticalFlowProcessor(frame1)
         frame2 = cv2.resize(frame2, (840, 480), interpolation=cv2.INTER_AREA)
         mask = np.zeros_like(frame2)
+        frame_counter = 0
         while self.cap.isOpened():
             if frame2 is None or frame1 is None:
                 break
@@ -61,12 +61,12 @@ class VideoShowing:
 
             detect_img, treck, grad_x, grad_y, con, points = self.detect_no_opencv.detect_without_opencv(frame1, gradient_x_diff, gradient_y_diff)
             # if count % 3 == 0:
-            trecker_img = trecker.calculate_optical_flow(frame1, frame2, treck, gradient_x, gradient_y, blur_img2, mask)
+            trecker_img = trecker.calculate_optical_flow(frame1, blur_img1, blur_diff, treck, gradient_x, gradient_y, blur_img2, mask, frame_counter)
 
             cv2.imshow("main", trecker_img)
             frame1 = frame2
             frame2 = self.read_frame()
-            count += 1
+            frame_counter += 1
 
             if cv2.waitKey(1) == 27:
                 break
