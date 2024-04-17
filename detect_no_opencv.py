@@ -91,11 +91,12 @@ class VideoProcessingWithoutOpencv:
         if cc is not None:
 
             for cluster in cc:
-                xx, yy, w, h = cv2.boundingRect(np.array(cluster))
-                trecker_rect.append([xx, yy, w, h])
+                contour = np.array(cluster)
                 # self.history_points.append([(xx+w)//2, (yy+h)//2])
-                if cv2.contourArea(
-                        np.array(cluster)) > 50:  # условие при котором площадь выделенного объекта меньше 700 px
-                    cv2.rectangle(frame1, (xx, yy), (xx + w, yy + h), (0, 255, 0), 2)
+                if cv2.contourArea(contour) < 50:  # условие при котором площадь выделенного объекта меньше 700 px
+                    continue
+                xx, yy, w, h = cv2.boundingRect(contour)
+                trecker_rect.append([xx, yy, w, h])
+                cv2.rectangle(frame1, (xx, yy), (xx + w, yy + h), (0, 255, 0), 2)
 
         return frame1, trecker_rect, gradient_x, gradient_y, suppressed, self.history_points

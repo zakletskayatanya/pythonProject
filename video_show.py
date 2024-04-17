@@ -41,11 +41,13 @@ class VideoShowing:
             frame2 = cv2.resize(frame2, dim, interpolation=cv2.INTER_AREA)
 
             #предварительная обработка кадров
-            diff = cv2.absdiff(frame1, frame2)
-            gray_diff = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
-            blur_diff = gauss.GaussianFilter(7).gauss_blur(gray_diff)
+
+            # gray_diff = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+
             gray_img1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
             gray_img2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+            gray_diff = cv2.absdiff(gray_img1, gray_img2)
+            blur_diff = gauss.GaussianFilter(7).gauss_blur(gray_diff)
             blur_img1 = gauss.GaussianFilter(7).gauss_blur(gray_img1)
             blur_img2 = gauss.GaussianFilter(7).gauss_blur(gray_img2)
             sobel_x = np.array([[1, 0, -1],
