@@ -1,4 +1,3 @@
-
 import numpy as np
 from scipy.spatial.distance import cdist
 
@@ -8,7 +7,7 @@ def distance(cluster1, cluster2):
 
 
 def min_distance(cluster1, cluster2):
-    return (distance(cluster1, cluster2))
+    return distance(cluster1, cluster2)
 
 
 def find_clusters(contours):
@@ -22,9 +21,7 @@ def find_clusters(contours):
     ii = 0
     jj = 1
 
-
     while True:
-
         if jj >= len(clusters):
             ii += 1
             jj = ii+1
