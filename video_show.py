@@ -10,8 +10,9 @@ class VideoShowing:
 
     def __init__(self):
         self.cap = None
-        self.dim = (780, 440)
+        # self.dim = (780//2, 480//2)
 
+        self.dim = (540,280)
     def init(self, video_path):
         self.cap = cv2.VideoCapture(video_path)
 
@@ -31,6 +32,7 @@ class VideoShowing:
 
         frame2 = cv2.resize(frame2, self.dim, interpolation=cv2.INTER_AREA)
         mask = np.zeros_like(frame2)
+        frame_count=0
 
         while self.cap.isOpened():
             if frame2 is None or frame1 is None:
@@ -42,8 +44,11 @@ class VideoShowing:
             # предварительная обработка кадров
             blur_diff = processin_image.blur_diff_image(frame1, frame2)
 
+            # if frame_count % 20 == 0:
+            #     fr = frame1
             blur_img1 = processin_image.blur_image(frame1)
-            blur_img2 = processin_image.blur_image(frame1)
+            blur_img2 = processin_image.blur_image(frame2)
+            # blur_img2 = processin_image.blur_diff_image(fr, frame2)
 
             gradient_x, gradient_y = processin_image.gradient_image(blur_diff)
 
@@ -53,7 +58,7 @@ class VideoShowing:
             # detect with opencv
             # trecker_rectangle = detect_with_opencv.detect_with_opencv(frame1, frame2)
 
-            trecker_img = optical_flow.calculate_optical_flow(frame1, blur_img1, blur_img2, trecker_rectangle, mask)
+            trecker_img = optical_flow.calculate_optical_flow(frame1, blur_img1, blur_img2, trecker_rectangle, mask, frame_count)
 
             cv2.imshow("main", trecker_img)
 
@@ -62,6 +67,8 @@ class VideoShowing:
 
             if cv2.waitKey(1) == 27:
                 break
+            # print(frame_count)
+            frame_count += 1
 
         self.cap.release()
         cv2.destroyAllWindows()
