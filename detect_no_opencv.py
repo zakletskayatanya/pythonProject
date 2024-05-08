@@ -54,7 +54,7 @@ def detect_without_opencv(frame1, frame2, gradient_x, gradient_y):
     suppressed = np.where(gradient_magnitude >= max_neighbors, gradient_magnitude, suppressed)
 
     top_threshhold = 120
-    low_threshhold = 80
+    low_threshhold = 75
 
     suppressed = np.where(suppressed >= top_threshhold, 255, suppressed)
     suppressed = np.where(suppressed <= low_threshhold, 0, suppressed)
