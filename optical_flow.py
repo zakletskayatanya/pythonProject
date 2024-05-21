@@ -2,11 +2,66 @@ import cv2
 import numpy as np
 import processin_image
 
-w_size = 3
-k = 0.15
+w_size = 4
+k = 0.06
 # p0_u = np.zeros((540,280))
 # p0_v = np.zeros((540,280))
 p0 = {0: [], 1: [], 2: []}
+
+
+def corners_fast(frame, x, y, w, h):
+    points = []
+    light_count, dark_count = 0, 0
+    radius = 3
+    pixels = 16
+    n = 12
+    circle = []
+    circle.append([0, -3])
+    circle.append([1, -3])
+    circle.append([2, -2])
+    circle.append([3, -1])
+    circle.append([3, 0])
+    circle.append([3, 1])
+    circle.append([2, 2])
+    circle.append([1, 3])
+    circle.append([0, 3])
+    circle.append([-1, 3])
+    circle.append([-2, 2])
+    circle.append([-3, 1])
+    circle.append([-3, 0])
+    circle.append([-3, -1])
+    circle.append([-2, -2])
+    circle.append([-1, 3])
+
+    for i in range(x+radius, x + w - radius):
+        for j in range(y + radius, y + h - radius):
+            light_count, dark_count = 0, 0
+            color_mass = np.zeros(pixels)
+            for l in range(4):
+
+                if frame[i, j] < frame[i+circle[4*l][0], j + circle[4*l][1]]:
+                    dark_count += 1
+                    continue
+                if frame[i, j] > frame[i+circle[4*l][0], j + circle[4*l][1]]:
+                    light_count += 1
+                    continue
+            # print(dark_count,light_count)
+            if dark_count >= 3 or light_count >= 3:
+                for k in range(pixels):
+                    if frame[i, j] < frame[i+circle[k][0], j + circle[k][1]]:
+                        color_mass[k] = -1
+                        continue
+                    if frame[i, j] > frame[i+circle[k][0], j +circle[k][1]]:
+                        color_mass[k] = 1
+                        continue
+                light_count = len(np.where(color_mass == 1)[0])
+                dark_count = len(np.where(color_mass == -1)[0])
+                # print(dark_count, light_count)
+                if light_count >= n or dark_count >= n:
+                    points.append([i, j])
+    # print(points)
+    return points
+
 
 
 def corners_check(gradient_x, gradient_y, points):
@@ -30,8 +85,8 @@ def corners_check(gradient_x, gradient_y, points):
 
 def corners_points(gradient_x, gradient_y, x, y, w, h):
     corners = np.zeros(gradient_x.shape)
-    for j in range(x + w_size, x + w - w_size):
-        for i in range(y + w_size, y + h - w_size):
+    for i in range(x + w_size, x + w - w_size):
+        for j in range(y + w_size, y + h - w_size):
             Ix = gradient_x[i - w_size:i + w_size, j - w_size:j + w_size].flatten()
             Iy = gradient_y[i - w_size:i + w_size, j - w_size:j + w_size].flatten()
 
@@ -43,7 +98,7 @@ def corners_points(gradient_x, gradient_y, x, y, w, h):
             if R < k:
                 continue
             corners[i, j] = R
-    corners = np.column_stack(np.where(corners > 0.2 * corners.max()))
+    corners = np.column_stack(np.where(corners > 0.1 * corners.max()))
     return corners
 
 
@@ -54,18 +109,19 @@ def calculate_optical_flow(frame1, blur_image, blur_diff, treck, mask, frame_cou
     # if frame_count % 20 == 0:
     #     p0.clear()
 
-    width, height = frame1.shape[:2]
+    height, width = frame1.shape[:2]
 
     for iter in range(2, -1, -1):
         frame1_pyr = cv2.resize(blur_image, (height // 2 ** iter, width // 2 ** iter), interpolation=cv2.INTER_AREA)
         frame2_pyr = cv2.resize(blur_diff, (height // 2 ** iter, width // 2 ** iter), interpolation=cv2.INTER_AREA)
-
+        frame = cv2.resize(cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY), (height // 2 ** iter, width // 2 ** iter), interpolation=cv2.INTER_AREA)
         gradient_x, gradient_y = processin_image.gradient_image(frame1_pyr)
         u = np.zeros(gradient_x.shape)
         v = np.zeros(gradient_x.shape)
         # if frame_count % 10 == 0:
         #     p0[iter].clear()
         corners = []
+        test = []
         for rect in treck:
             x, y, w, h = rect
             y = y // 2 ** iter
@@ -74,32 +130,16 @@ def calculate_optical_flow(frame1, blur_image, blur_diff, treck, mask, frame_cou
             w = w // 2 ** iter
             points = corners_points(gradient_x, gradient_y, x, y, w, h)
             corners.extend(points)
+
+            p = corners_fast(frame1_pyr, x, y, w, h)
+            test.extend(p)
+
         p0[iter] = corners_check(gradient_x, gradient_y, p0[iter])
         corners.extend(p0[iter])
-        p0[iter].clear()
-        # print(corners)
-
-        # if frame_count % 10 == 0:
-        #     p0[2-iter].clear()
-        #
-        #     for rect in treck:
-        #         x, y, w, h = rect
-        #         y = y // 2 ** iter
-        #         x = x // 2 ** iter
-        #         h = h // 2 ** iter
-        #         w = w // 2 ** iter
-        #         points = corners_points(gradient_x, gradient_y, x, y, w, h)
-        #         corners.extend(points)
-        #     p0[2-iter] = corners
-        # else:
-        #     p0[2 - iter] = corners_check(gradient_x, gradient_y, p0[2 - iter])
-        #     corners = p0[2 - iter]
         corners = np.array(corners)
+        p0[iter].clear()
         for key, point in enumerate(corners):
                     i, j = point
-        # for i in range(corners.shape[0]):
-        #         for j in range(corners.shape[1]):
-                    # print(i,j)
                     Ix = gradient_x[i - w_size:i + w_size, j - w_size:j + w_size].flatten()
                     Iy = gradient_y[i - w_size:i + w_size, j - w_size:j + w_size].flatten()
 
@@ -109,17 +149,16 @@ def calculate_optical_flow(frame1, blur_image, blur_diff, treck, mask, frame_cou
                     #     continue
                     It = frame2_pyr[i - w_size:i + w_size, j - w_size:j + w_size].flatten()
                     b = -np.array([np.sum((Ix * It)), np.sum((Iy * It))])
-                    uv = -np.linalg.solve(M, b)
+                    uv = np.linalg.solve(M, b)
                     u[i, j] = uv[0]
                     v[i, j] = uv[1]
-                    if i + int(np.ceil(u[i, j])) < gradient_y.shape[0] & j + int(np.ceil(v[i, j])) < gradient_y.shape[1]:
-                        p0[iter].append([i + int(np.ceil(u[i, j])), j + int(np.ceil(v[i, j]))])
+                    # if i + int(np.ceil(u[i, j])) < gradient_y.shape[0] & j + int(np.ceil(v[i, j])) < gradient_y.shape[1]:
+                    p0[iter].append([i + int(np.ceil(u[i, j])), j + int(np.ceil(v[i, j]))])
 
         U.append(u)
         V.append(v)
     u_t, v_t = np.zeros_like(U[0]), np.zeros_like(V[0])
-
-    # p0.extend(corners)
+    # print(p0)
     for i in range(len(U) - 1):
         u_d = cv2.resize(U[i], (U[i].shape[1] * 2, U[i].shape[0] * 2), interpolation=cv2.INTER_AREA)
         v_d = cv2.resize(V[i], (V[i].shape[1] * 2, V[i].shape[0] * 2), interpolation=cv2.INTER_AREA)
@@ -128,21 +167,22 @@ def calculate_optical_flow(frame1, blur_image, blur_diff, treck, mask, frame_cou
         u_t += u_d + U[i + 1]
         v_t += v_d + V[i + 1]
 
+    # print(corners.shape)
     # if frame_count > 1:
     #     p0 = np.column_stack((u_t, v_t))
     # if frame_count % 5 == 0:
     # corners = np.column_stack(np.where(corners > 0.2 * corners.max()))
     # print(np.nonzero(u_t))
 
-    for corner in corners:
+    for corner in test:
         i, j = corner
         # print(j,i)
         # print(int(np.ceil(i + (u_t[j, i]))), int(np.ceil(j + (v_t[j, i]))))
-        mask = cv2.line(mask,  (int(np.ceil((j + (v_t[i, j])))), int(np.ceil(i + (u_t[i, j])))),(j, i),
-                        (0, 0, 255), 1)
+        # mask = cv2.line(mask,(int(np.ceil((i + (u_t[i, j])))), int(np.ceil(j + (v_t[i, j])))),(i, j),
+        #                 (0, 0, 255), 1)
         # cv2.circle(frame1, (int(np.ceil((i + (u_t[j, i])))), int(np.ceil(j + (v_t[j, i])))), 1,
         #                      (255, 0, 0), 2)
-        cv2.circle(frame1, (int(np.ceil((j + (v_t[i, j])))), int(np.ceil(i + (u_t[i, j])))), 1,(0, 255, 0), -1)
+        cv2.circle(frame1, (int(np.ceil((i))), int(np.ceil(j ))), 1,(0, 255, 0), -1)
 
     img = cv2.add(frame1, mask)
 

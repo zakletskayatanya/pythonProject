@@ -52,7 +52,7 @@ class VideoShowing:
                 mask_array.append(mask)
                 mask = np.zeros_like(frame2)
             blur_img1 = processin_image.blur_image(frame1)
-            # blur_img2 = processin_image.blur_image(frame3)
+            blur_img2 = processin_image.blur_image(frame2)
 
             gradient_x, gradient_y = processin_image.gradient_image(blur_diff)
 

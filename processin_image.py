@@ -6,7 +6,7 @@ from scipy.signal import convolve2d
 
 def blur_image(image):
     result = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    result = result.astype('float')
+    # result = result.astype('float')
     result = gauss.gauss_blur(result, 7)
     return result
 
