@@ -14,6 +14,7 @@ class VideoShowing:
         # self.dim = (780//2, 480//2)
 
         self.dim = (540,280)
+
     def init(self, video_path):
         self.cap = cv2.VideoCapture(video_path)
 
@@ -31,11 +32,10 @@ class VideoShowing:
         frame1 = self.read_frame()
         frame2 = self.read_frame()
 
-
         frame2 = cv2.resize(frame2, self.dim, interpolation=cv2.INTER_AREA)
         mask = np.zeros_like(frame2)
         mask_array = []
-        frame_count=1
+        frame_count = 0
 
         while self.cap.isOpened():
             if frame2 is None or frame1 is None :
@@ -43,7 +43,6 @@ class VideoShowing:
 
             frame1 = cv2.resize(frame1, self.dim, interpolation=cv2.INTER_AREA)
             frame2 = cv2.resize(frame2, self.dim, interpolation=cv2.INTER_AREA)
-
 
             # предварительная обработка кадров
             blur_diff = processin_image.blur_diff_image(frame1, frame2)
@@ -63,7 +62,7 @@ class VideoShowing:
             # detect with opencv
             # trecker_rectangle = detect_with_opencv.detect_with_opencv(frame1, frame2)
 
-            trecker_img = optical_flow.calculate_optical_flow(frame1, blur_img1, blur_diff, trecker_rectangle, mask, frame_count)
+            trecker_img = optical_flow.calculate_optical_flow(frame1, blur_img1, blur_img2, trecker_rectangle, mask, frame_count)
 
             cv2.imshow("main", trecker_img)
 
@@ -77,5 +76,4 @@ class VideoShowing:
 
         self.cap.release()
         cv2.destroyAllWindows()
-
 
