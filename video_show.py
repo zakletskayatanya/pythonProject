@@ -45,7 +45,7 @@ class VideoShowing:
             frame2 = cv2.resize(frame2, self.dim, interpolation=cv2.INTER_AREA)
 
             # предварительная обработка кадров
-            blur_diff = processin_image.blur_diff_image(frame1, frame2)
+            blur_diff = processin_image.blur_diff_image(frame2, frame1)
 
             if frame_count % 70 == 0:
                 mask_array.append(mask)
@@ -62,7 +62,7 @@ class VideoShowing:
             # detect with opencv
             # trecker_rectangle = detect_with_opencv.detect_with_opencv(frame1, frame2)
 
-            trecker_img = optical_flow.calculate_optical_flow(frame1, blur_img1, blur_img2, trecker_rectangle, mask, frame_count)
+            trecker_img = optical_flow.calculate_optical_flow(frame1, cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY), cv2.cvtColor(cv2.absdiff(frame1, frame2), cv2.COLOR_BGR2GRAY), trecker_rectangle, mask, frame_count)
 
             cv2.imshow("main", trecker_img)
 

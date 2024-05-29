@@ -17,7 +17,7 @@ def find_clusters(contours):
     points = np.column_stack((x, y))
 
     clusters = [[i] for i in points[::5]]
-    min_dist = 20
+    min_dist = 35
     ii = 0
     jj = 1
 
